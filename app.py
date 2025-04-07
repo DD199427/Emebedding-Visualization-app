@@ -8,6 +8,7 @@ import plotly.graph_objects as go
 import uvicorn
 import os
 import requests
+import gdown
 
 app = FastAPI()
 
@@ -19,18 +20,21 @@ class VisualizationRequest(BaseModel):
 def home():
     return {"message": "FastAPI is running. Use POST /visualize/ to generate visualizations."}
 
+import os
+import gdown
+import pickle
+
+GLOVE_PICKLE = "glove_embeddings.pkl"
+GDRIVE_FILE_ID = "1wbLSdPm5DDIspj_Ojuq4nlwZXV_aiWQJ"  # Replace with actual ID
+
 def load_glove_embeddings():
-    pkl_path = "glove_embeddings.pkl"
+    if not os.path.exists(GLOVE_PICKLE):
+        print("📥 Downloading GloVe embeddings from Google Drive...")
+        gdown.download(f"https://drive.google.com/uc?id={GDRIVE_FILE_ID}", GLOVE_PICKLE, quiet=False)
 
-    if not os.path.exists(pkl_path):
-        print("🔽 Downloading GloVe embeddings from cloud...")
-        url = "https://drive.google.com/file/d/1wbLSdPm5DDIspj_Ojuq4nlwZXV_aiWQJ/view?usp=drive_link/glove_embeddings.pkl"
-        r = requests.get(url)
-        with open(pkl_path, "wb") as f:
-            f.write(r.content)
-
-    with open(pkl_path, "rb") as f:
+    with open(GLOVE_PICKLE, "rb") as f:
         return pickle.load(f)
+
 
 def embed_sentence(sentence, embeddings, dim=50):
     words = sentence.split()
